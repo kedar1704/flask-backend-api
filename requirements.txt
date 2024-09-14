@@ -1,0 +1,4 @@
+Flask
+Flask-SQLAlchemy
+PyMySQL
+cryptography==39.0.1
