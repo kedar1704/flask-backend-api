@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: flask-app
-        image: kedar1704/flask-backend-api
+        image: kedar1704/flask-backend-api:v3
         ports:
         - containerPort: 5000
         env:
@@ -34,4 +34,11 @@ spec:
           value: "3306"
         - name: DB_NAME
           value: messages_db
-
+        volumeMounts:
+        - name: log-volume
+          mountPath: /var/logs
+      volumes:
+      - name: log-volume
+        hostPath:
+          path: /var/logs  # Path on the host where logs are accessible
+          type: Directory
