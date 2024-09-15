@@ -67,7 +67,15 @@ pipeline {
             steps {
                 sh 'cd k8s'
 		sh "sed -i 's#image: kedar1704/flask-backend-api:v3#image: kedar1704/python_app:$BUILD_NUMBER#g' /var/lib/jenkins/workspace/application-cicd/k8s/deployment.yaml"
-		sh "kubectl apply -f k8s/*.yaml"
+		sh "kubectl apply -f k8s/deployment.yaml"
+		sh "kubectl apply -f k8s/sts.yaml"
+		sh "kubectl apply -f k8s/service.yaml"
+		sh "kubectl apply -f k8s/db-secret.yaml"
+            }
+          }
+	stage('Get all ') {
+            steps {
+                sh 'kubectl get all -n default'
             }
           }
     }
