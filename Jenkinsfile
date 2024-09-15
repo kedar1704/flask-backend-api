@@ -58,5 +58,10 @@ pipeline {
 		            sh 'docker push kedar1704/python_app:$BUILD_NUMBER'
             }
           }
+	stage('get pods') {
+            steps {
+                sh 'k get po'
+            }
+          }
     }
 }
