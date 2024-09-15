@@ -63,5 +63,10 @@ pipeline {
                 sh 'kubectl get po'
             }
           }
+	stage('Apply manifests') {
+            steps {
+                sh 'pwd'
+            }
+          }
     }
 }
