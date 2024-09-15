@@ -60,7 +60,7 @@ pipeline {
           }
 	stage('get pods') {
             steps {
-                sh 'k get po'
+                sh 'sudo k get po'
             }
           }
     }
