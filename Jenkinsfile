@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    environment {     
+    DOCKERHUB_CREDENTIALS= credentials('dockerhub_login')     
+    } 
+
+    stages {
+        stage('Clean workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Code download') {
+            steps {
+                git branch: 'main', url: 'https://github.com/kedar1704/mvc_1.git'
+            }
+        }
+        stage('Dockerize app') {
+            steps {
+                sh 'pwd'
+                sh 'docker build -t python_app:$BUILD_NUMBER .'
+            }
+          }
+        stage('Docker images') {
+            steps {
+                sh 'docker images'
+            }
+          }
+        stage('Wait for Approval') {
+            steps {
+                script {
+                    def userInput = input(
+                        message: 'Do you want to continue?',
+                        parameters: [
+                            [$class: 'BooleanParameterDefinition', 
+                             defaultValue: false, 
+                             description: 'Click "Yes" to continue pushing to dockerhub or "No" to abort', 
+                             name: 'Push to dockerhub']
+                        ]
+                    )
+                    
+                    if (userInput) {
+                        echo 'Deploying the image to dockerhub'
+                    } else {
+                        echo 'Dont push image. Aborting pipeline.'
+                        currentBuild.result = 'ABORTED'
+                        error('Pipeline aborted by user.')
+                    }
+                }
+            }
+        }
+        stage('Push image to dockerhub') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'                		
+	              echo 'Login Completed'
+		            sh 'docker tag python_app:$BUILD_NUMBER kedar1704/python_app:$BUILD_NUMBER'
+		            sh 'docker push kedar1704/python_app:$BUILD_NUMBER'
+            }
+          }
+    }
+}
