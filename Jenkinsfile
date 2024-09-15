@@ -66,7 +66,8 @@ pipeline {
 	stage('Apply manifests') {
             steps {
                 sh 'cd k8s'
-		sh "sed -i 's#image: kedar1704/flask-backend-api:v3#image: kedar1704/python_app:$BUILD_NUMBER#g' deployment.yaml"
+                sh 'pwd'
+		sh "sed -i 's#image: kedar1704/flask-backend-api:v3#image: kedar1704/python_app:$BUILD_NUMBER#g' k8s/deployment.yaml"
 		sh "kubectl apply -f k8s/deployment.yaml"
 		sh "kubectl apply -f k8s/sts.yaml"
 		sh "kubectl apply -f k8s/svc.yaml"
