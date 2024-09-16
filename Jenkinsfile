@@ -2,7 +2,10 @@ pipeline {
     agent any
 
     environment {     
-    DOCKERHUB_CREDENTIALS= credentials('dockerhub_login')     
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_login')
+        MYSQL_ROOT_PASSWORD = credentials('mysql_root_password')
+        MYSQL_USER = credentials('mysql_user')
+        MYSQL_PASSWORD = credentials('mysql_password')
     } 
 
     stages {
@@ -21,12 +24,12 @@ pipeline {
                 sh 'pwd'
                 sh 'docker build -t python_app:$BUILD_NUMBER .'
             }
-          }
+        }
         stage('Docker images') {
             steps {
                 sh 'docker images'
             }
-          }
+        }
         stage('Wait for Approval') {
             steps {
                 script {
@@ -57,27 +60,24 @@ pipeline {
 		            sh 'docker tag python_app:$BUILD_NUMBER kedar1704/python_app:$BUILD_NUMBER'
 		            sh 'docker push kedar1704/python_app:$BUILD_NUMBER'
             }
-          }
-	stage('get pods') {
+        }
+        stage('Apply manifests') {
             steps {
-                sh 'kubectl get po'
+                dir('k8s') {
+                    sh "sed -i 's#image: kedar1704/flask-backend-api:v3#image: kedar1704/python_app:$BUILD_NUMBER#g' deployment.yaml"
+                    sh "envsubst < db-secret.yaml | kubectl apply -f -"
+                    sh "kubectl apply -f deployment.yaml"
+                    sh "kubectl apply -f sts.yaml"
+                    sh "kubectl apply -f svc.yaml"
+		    sh "kubectl apply -f es.yml"
+		    sh "kubectl apply -f fluent.yml
+                }
             }
-          }
-	stage('Apply manifests') {
-            steps {
-                sh 'cd k8s'
-                sh 'pwd'
-		sh "sed -i 's#image: kedar1704/flask-backend-api:v3#image: kedar1704/python_app:$BUILD_NUMBER#g' k8s/deployment.yaml"
-		sh "kubectl apply -f k8s/deployment.yaml"
-		sh "kubectl apply -f k8s/sts.yaml"
-		sh "kubectl apply -f k8s/svc.yaml"
-		sh "kubectl apply -f k8s/db-secret.yaml"
-            }
-          }
-	stage('Get all ') {
+        }
+        stage('Get all') {
             steps {
                 sh 'kubectl get all -n default'
             }
-          }
+        }
     }
 }
